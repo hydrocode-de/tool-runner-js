@@ -6,6 +6,7 @@ import * as fs from 'fs';
 
 import docker from './docker';
 import { ToolConfig } from './models/ToolConfig';
+export { ToolConfig } from './models/ToolConfig';
 import { buildParameterFile } from './parameter';
 
 
@@ -51,12 +52,20 @@ const getToolsFromImage = async (imageTag: string): Promise<ToolConfig[]> => {
     return new Promise(resolve => resolve(toolObjs))
 }
 
+export const listTools = async (prefix: string | string[] = 'tbr_'): Promise<ToolConfig[]>  => {
+    // get all images containing tools
+    const tags = await getImageTags(prefix);
+    
+    // wait until all images return the tools
+    return Promise.all(tags.map(tag => getToolsFromImage(tag))).then(value => value.flat())
+}
+
 
 export interface RunOptions {
     path?: string
 }
 
-const runTool = async (tool: ToolConfig, options: RunOptions= {}, args: {}= {}): Promise<void> => {
+export const runTool = async (tool: ToolConfig, options: RunOptions= {}, args: {}= {}): Promise<void> => {
     // handle the paths
     let basePath: string;
     if (options.path) {
@@ -71,29 +80,12 @@ const runTool = async (tool: ToolConfig, options: RunOptions= {}, args: {}= {}):
     if (!fs.existsSync(inDir)) fs.mkdirSync(inDir)
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
+    // build the parameterization
     const paramPath = buildParameterFile(args, inDir, tool)
+
+    docker.run()
+
+
+
     return Promise.resolve()
 }
-
-// getImageTags().then(tags => getToolsFromImage(tags[0])).then(l => console.log(l))
-
-
-const TEST = {
-    fooInt: 42,
-    fooFloat: 13.12,
-    fooStr: 'foobar'
-}
-
-const toolConfig: ToolConfig = {
-    name: 'foobar',
-    title: 'foobar',
-    image: 'foobar',
-    description: 'test-tool',
-    parameters: {
-        fooInt: {type: 'integer'},
-        fooFloat: {type: 'float'},
-        fooStr: {type: 'string'}
-    }
-}
-
-runTool(toolConfig, {path: './test'}, TEST)
