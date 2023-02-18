@@ -1,5 +1,6 @@
 import { listTools, runTool  } from './run'
 import { ToolConfig } from './models/ToolConfig'
+import { runServer } from './api/api'
 
 // getImageTags().then(tags => getToolsFromImage(tags[0])).then(l => console.log(l))
 
@@ -24,14 +25,16 @@ const toolConfig: ToolConfig = {
 
 //runTool(toolConfig, {path: './test'}, TEST)
 
-listTools().then(tools => {
-    //console.log(tools)
+// listTools().then(tools => {
+//     //console.log(tools)
     
-    const tool = tools.find(t => t.name === 'profile')
+//     const tool = tools.find(t => t.name === 'profile')
 
-    if (tool) {
-        runTool(tool, {mountPath: './test', resultPath: './'}, {data: './test/dataframe.csv'})
-        .then(path => console.log(path))
-    }
+//     if (tool) {
+//         runTool(tool, {mountPath: './test', resultPath: './'}, {data: './test/dataframe.csv'})
+//         .then(path => console.log(path))
+//     }
 
-})
+// })
+
+runServer()
