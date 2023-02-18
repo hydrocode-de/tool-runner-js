@@ -1,12 +1,13 @@
-import { listTools, ToolConfig, runTool  } from './index'
+import { listTools, runTool  } from '.'
+import { ToolConfig } from './models/ToolConfig'
 
 // getImageTags().then(tags => getToolsFromImage(tags[0])).then(l => console.log(l))
 
 
 const TEST = {
-    fooInt: 42,
-    fooFloat: 13.12,
-    fooStr: 'foobar'
+    foo_int: 42,
+    foo_float: 13.12,
+    foo_string: 'foobar'
 }
 
 const toolConfig: ToolConfig = {
@@ -23,4 +24,14 @@ const toolConfig: ToolConfig = {
 
 //runTool(toolConfig, {path: './test'}, TEST)
 
-listTools().then(tools => console.log(tools))
+listTools().then(tools => {
+    //console.log(tools)
+    
+    const tool = tools.find(t => t.name === 'profile')
+
+    if (tool) {
+        runTool(tool, {mountPath: './test', resultPath: './'}, {data: './test/dataframe.csv'})
+        .then(path => console.log(path))
+    }
+
+})
