@@ -1,5 +1,6 @@
 import * as express from 'express';
-import e = require('express');
+import * as e from 'express';
+import * as cors from 'cors';
 
 import { refreshCache, filterToolName, ReqTools, ReqTool } from './middleware';
 import * as run from '../run';
@@ -7,6 +8,9 @@ import * as run from '../run';
 
 // cereate the API server
 const app = express()
+
+// always enable CORS
+app.use(cors())
 
 // always use the caching middleware
 app.use('/tools*', refreshCache)
