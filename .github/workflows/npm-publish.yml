@@ -36,7 +36,7 @@ jobs:
       - name: Install and compile
         run: |
           npm ci
-          npm build
+          npm run build
       
       - name: Publish to NPM
         run: npm publish
