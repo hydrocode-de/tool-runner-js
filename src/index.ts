@@ -1,12 +1,15 @@
-import { Container } from 'dockerode';
+import { Container, ContainerCreateOptions } from 'dockerode';
 import { parse } from 'yaml';
 import { WritableStream } from 'memory-streams';
 import * as os from 'os';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as tar from 'tar';
+import { performance } from 'perf_hooks';
+
 
 import docker from './docker';
 import { ToolConfig } from './models/ToolConfig';
-export { ToolConfig } from './models/ToolConfig';
 import { buildParameterFile } from './parameter';
 
 
@@ -62,14 +65,16 @@ export const listTools = async (prefix: string | string[] = 'tbr_'): Promise<Too
 
 
 export interface RunOptions {
-    path?: string
+    mountPath?: string,
+    keepContainer?: boolean,
+    resultPath?: string
 }
 
-export const runTool = async (tool: ToolConfig, options: RunOptions= {}, args: {}= {}): Promise<void> => {
+export const runTool = async (tool: ToolConfig, options: RunOptions= {}, args: {}= {}): Promise<string> => {
     // handle the paths
     let basePath: string;
-    if (options.path) {
-        basePath = options.path;
+    if (options.mountPath) {
+        basePath = options.mountPath;
     } else {
         basePath = fs.mkdtempSync(os.tmpdir())
     }
@@ -83,9 +88,61 @@ export const runTool = async (tool: ToolConfig, options: RunOptions= {}, args: {
     // build the parameterization
     const paramPath = buildParameterFile(args, inDir, tool)
 
-    docker.run()
+    // capture the streams
+    const stdout = new WritableStream()
+    const stderr = new WritableStream()
 
+    // build the options
+    const opts: ContainerCreateOptions = {
+        Env: ['PARAM_FILE=/in/parameters.json', `RUN_TOOL=${tool.name}`],
+        Tty: false,
+        HostConfig: {
+            Binds: [
+                `${path.resolve(inDir)}:/in`,
+                `${path.resolve(outDir)}:/out`
+            ]
+        }
+    }
 
+    // run and get the container
+    const t1 = performance.now()
+    const container = await docker.run(tool.image, [], [stdout, stderr], opts, {}).then(data => {
+        return data[1] as Container
+    })
+    const t2 = performance.now()
 
-    return Promise.resolve()
+    // save stdout and stderr
+    fs.writeFileSync(`${outDir}/STDOUT.log`, stdout.toBuffer())
+    fs.writeFileSync(`${outDir}/STDERR.log`, stderr.toBuffer())
+    
+    // save metadata
+    const metadata = {
+        container_id: container.id,
+        runtime: (t2 - t1) / 1000,
+        name: tool.name,
+        image: tool.image,
+        tag: tool.image.split(':').pop(),
+        repository: tool.image.split(':').slice(0, -1).join('')
+    }
+    fs.writeFileSync(`${basePath}/metadata.json`, JSON.stringify(metadata, null, 4))
+
+    // remove the container again
+    if (!options.keepContainer) {
+        container.remove()
+    }
+
+    // check if a result path was given
+    if (options.resultPath) {
+        const tarpath = path.join(options.resultPath, `${Math.floor(Date.now() / 1000)}_${tool.name}.tar.gz`)
+        await tar.c({
+            gzip: true,
+            portable: true,
+            file: tarpath,
+        }, [ `${basePath}` ])
+
+        // return the tarpath
+        return new Promise(resolve => resolve(tarpath))
+    } else {
+        return new Promise(resolve => resolve(stdout.toString()))
+    }
 }
