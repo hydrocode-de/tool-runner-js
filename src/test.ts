@@ -1,4 +1,4 @@
-import { listTools, runTool  } from '.'
+import { listTools, runTool  } from './run'
 import { ToolConfig } from './models/ToolConfig'
 
 // getImageTags().then(tags => getToolsFromImage(tags[0])).then(l => console.log(l))
