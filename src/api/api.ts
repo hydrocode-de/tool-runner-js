@@ -2,6 +2,7 @@ import * as express from 'express';
 import e = require('express');
 
 import { refreshCache, filterToolName, ReqTools, ReqTool } from './middleware';
+import * as run from '../run';
 
 
 // cereate the API server
@@ -41,7 +42,29 @@ app.get('/tools/:toolName',(req, res) => {
     res.status(200).json({
         tool: (req as e.Request<{toolName: string}> & ReqTool).tool
     })
+})
 
+app.get('/tools/:toolName/run', async (req, res) => {
+    // get the tool
+    const tool = (req as e.Request<{toolName: string}> & ReqTool).tool
+
+    // check the query params, anything that is not refresh, will be parsed
+    const { refresh, resultPath, mountPath, ...args} = req.query
+
+    // build the options
+    const opts: run.RunOptions = {
+        resultPath: resultPath as string | undefined,
+        mountPath: mountPath as string | undefined
+    }
+
+    // run the tool
+    const response = await run.runTool(tool, opts, args)
+
+    // return 
+    res.status(200).json({
+        message: `Run of tool '${tool.name}' finished.`,
+        output: response
+    })
 })
 
 
