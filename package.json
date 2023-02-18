@@ -1,5 +1,5 @@
 {
-  "name": "tool-runner",
+  "name": "@hydrocode/tool-runner",
   "version": "0.1.0",
   "description": "NodeJS tool runner framework for Vforwater tools",
   "main": "lib/index.js",
