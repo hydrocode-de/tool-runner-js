@@ -6,7 +6,7 @@ import { refreshCache, filterToolName, ReqTools, ReqTool } from './middleware';
 import * as run from '../run';
 
 
-const _addAPIEndpoints = (app: e.Express, production=false): e.Express => { 
+const _addAPIEndpoints = (app: e.Express, production=false, defaultResultPath?: string): e.Express => { 
     // create the routes
     app.get('/', (req, res) => {
         const response: any = {
@@ -55,6 +55,11 @@ const _addAPIEndpoints = (app: e.Express, production=false): e.Express => {
             mountPath: mountPath as string | undefined
         }
 
+        // add the defaultResultPath if set
+        if (defaultResultPath) {
+            opts.resultPath = defaultResultPath
+        }
+
         // run the tool
         const response = await run.runTool(tool, opts, args)
 
@@ -72,13 +77,19 @@ const _addAPIEndpoints = (app: e.Express, production=false): e.Express => {
 
 export interface RunServerOptions {
     port?: number,
-    production?: boolean
-
+    production?: boolean,
+    resultPath?: string,
 }
 
 export const runServer = (options: RunServerOptions= {}) => {
     // get the port
     const port = options.port || process.env.PORT || 3000;
+
+    // get the options
+    if (!options.production) {
+        console.log('Tool Runner JS API starting...')
+        console.log(options)
+    }
 
     // cereate the API server
     let app = express()
@@ -94,10 +105,10 @@ export const runServer = (options: RunServerOptions= {}) => {
     ;
 
     // add the final routes
-    app = _addAPIEndpoints(app, !!options.production)
+    app = _addAPIEndpoints(app, !!options.production, options.resultPath)
 
     // run the app
     app.listen(port, () => {
-        console.log(`Tool Runner JS API running at http://localhost:${port}`)
+        console.log(`  * http://localhost:${port}`)
     })
 }
