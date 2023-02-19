@@ -10,6 +10,10 @@
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json"
   },
+  "bin": {
+    "hydrocode/tool-runner": "bin/cli.js",
+    "tool-runner": "bin/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hydrocode-de/tool-runner-js.git"
