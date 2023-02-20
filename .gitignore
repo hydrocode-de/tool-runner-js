@@ -2,3 +2,4 @@ node_modules
 lib
 test
 *.tar.gz
+steps-data
