@@ -1,4 +1,5 @@
 import * as tar from 'tar';
+import * as fs from 'fs';
 
 export interface StepContent {
     inputs: string[],
@@ -6,6 +7,38 @@ export interface StepContent {
     metadata: {[key: string]: any},
     log?: string,
     errors?: string
+}
+
+export interface StepPreview {
+    name: string,
+    toolName?: string,
+    created?: string | Date
+}
+
+export interface ListStepFilter {
+    toolName?: string
+}
+
+export const listStepFiles = (resultPath: string, filter: ListStepFilter ={}): StepPreview[] => {
+    // read the files
+    const files = fs.readdirSync(resultPath, {withFileTypes: true}).filter(f => {
+        return f.isFile() && f.name.endsWith('.tar.gz')
+    })
+
+    // transform to previews
+    let previews = files.map(f => {
+        return { 
+            name: f.name, 
+            toolName: f.name.split('_').pop()?.split('.')[0],
+            created: new Date(Number(f.name.split('_')[0]) * 1000)
+        }
+    })
+
+    if (filter.toolName) {
+        previews = previews.filter(p => p.toolName === filter.toolName)
+    }
+
+    return previews
 }
 
 
@@ -35,12 +68,12 @@ export const extractFile = (tarPath: string, filename: string, encoding?: Buffer
     }
 }
 
-export interface ListStepOptions {
+export interface ShowStepOptions {
     skipErrors?: boolean,
     skipLog?: boolean
 }
 
-export const listStepContent = (path: string, opt: ListStepOptions ={}): StepContent => {
+export const showStepContent = (path: string, opt: ShowStepOptions ={}): StepContent => {
     // create the step container contents
     const inputs: string[] = []
     const outputs: string[] = []
