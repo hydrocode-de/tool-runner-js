@@ -4,7 +4,7 @@ import * as cors from 'cors';
 import * as fs from 'fs';
 
 import { refreshCache, filterToolName, ReqTools, ReqTool } from './tool-middleware';
-import { addResultPath, loadStep, ReqResultPath, ReqStep } from './step-middleware';
+import { addResultPath, loadStep, ReqResultPath, ReqStep, StepParams } from './step-middleware';
 import * as run from '../run';
 import * as step from '../step';
 
@@ -88,7 +88,14 @@ const _addAPIEndpoints = (app: e.Express, production=false, defaultResultPath?: 
 
     app.get('/steps/:stepName', (req, res) => {
         // get the result path
-        const step = (req as e.Request<{stepName: string}> & ReqStep).step
+        const step = (req as e.Request<StepParams> & ReqStep).step
+
+        res.status(200).json(step)
+    })
+
+    app.get('/steps/:stepName/:file', (req, res) => {
+        // get the result path
+        const step = (req as e.Request<StepParams> & ReqStep).step
 
         res.status(200).json(step)
     })
