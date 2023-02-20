@@ -4,7 +4,7 @@ import * as cors from 'cors';
 import * as fs from 'fs';
 
 import { refreshCache, filterToolName, ReqTools, ReqTool } from './tool-middleware';
-import { addResultPath, ReqResultPath } from './step-middleware';
+import { addResultPath, loadStep, ReqResultPath, ReqStep } from './step-middleware';
 import * as run from '../run';
 import * as step from '../step';
 
@@ -86,6 +86,13 @@ const _addAPIEndpoints = (app: e.Express, production=false, defaultResultPath?: 
         })
     })
 
+    app.get('/steps/:stepName', (req, res) => {
+        // get the result path
+        const step = (req as e.Request<{stepName: string}> & ReqStep).step
+
+        res.status(200).json(step)
+    })
+
     // return 
     return app
 }
@@ -113,12 +120,14 @@ export const runServer = (options: RunServerOptions= {}) => {
     // always enable CORS
     app.use(cors())
 
+    // add result path handling
+    app.use('/steps', addResultPath(options.resultPath))
+
     // always use the caching middleware
     app.use('/tools*', refreshCache)
     app.use('/tools/:toolName*', filterToolName)
+    app.use('/steps/:stepName', loadStep)
 
-    // add result path handling
-    app.use('/steps', addResultPath(options.resultPath))
 
     // add more middleware
     ;
