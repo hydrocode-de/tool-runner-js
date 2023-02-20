@@ -34,7 +34,10 @@ export interface ReqStep {
 export const loadStep = async (req: e.Request<{stepName: string}>, res: e.Response, next: e.NextFunction) => {
     // load the requested step
     const stepName = req.params.stepName.toLowerCase()
-    const step = loadStepContent(stepName);
+    const resultPath = (req as e.Request<{stepName: string}> & ReqResultPath).resultPath
+    
+    // load the step
+    const step = loadStepContent(`${resultPath}/${stepName}`);
 
     // add to the request
     if (step) {
