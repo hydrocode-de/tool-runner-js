@@ -1,9 +1,12 @@
 import * as express from 'express';
 import * as e from 'express';
 import * as cors from 'cors';
+import * as fs from 'fs';
 
-import { refreshCache, filterToolName, ReqTools, ReqTool } from './middleware';
+import { refreshCache, filterToolName, ReqTools, ReqTool } from './tool-middleware';
+import { addResultPath, loadStep, ReqResultPath, ReqStep, StepParams } from './step-middleware';
 import * as run from '../run';
+import * as step from '../step';
 
 
 const _addAPIEndpoints = (app: e.Express, production=false, defaultResultPath?: string): e.Express => { 
@@ -70,6 +73,33 @@ const _addAPIEndpoints = (app: e.Express, production=false, defaultResultPath?: 
         })
     })
 
+    app.get('/steps', (req, res) => {
+        // make sure either resultPath is set or passed as query param
+        const resultPath = (req as e.Request & ReqResultPath).resultPath
+        
+        const stepPreviews = step.listStepFiles(resultPath)
+
+        // send the respinse
+        res.status(200).json({
+            count: stepPreviews.length,
+            steps: stepPreviews
+        })
+    })
+
+    app.get('/steps/:stepName', (req, res) => {
+        // get the result path
+        const step = (req as e.Request<StepParams> & ReqStep).step
+
+        res.status(200).json(step)
+    })
+
+    app.get('/steps/:stepName/:file', (req, res) => {
+        // get the result path
+        const step = (req as e.Request<StepParams> & ReqStep).step
+
+        res.status(200).json(step)
+    })
+
     // return 
     return app
 }
@@ -97,9 +127,14 @@ export const runServer = (options: RunServerOptions= {}) => {
     // always enable CORS
     app.use(cors())
 
+    // add result path handling
+    app.use('/steps', addResultPath(options.resultPath))
+
     // always use the caching middleware
     app.use('/tools*', refreshCache)
-    app.use('/tools/:toolName*', filterToolName )
+    app.use('/tools/:toolName*', filterToolName)
+    app.use('/steps/:stepName', loadStep)
+
 
     // add more middleware
     ;
