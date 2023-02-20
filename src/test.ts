@@ -1,7 +1,7 @@
 import { listTools, runTool  } from './run'
 import { ToolConfig } from './models/ToolConfig'
 import { runServer } from './api/api'
-import { extractFile, listStepContent } from './step'
+import { extractFile, showStepContent } from './step'
 
 // getImageTags().then(tags => getToolsFromImage(tags[0])).then(l => console.log(l))
 
@@ -38,7 +38,7 @@ const toolConfig: ToolConfig = {
 
 // })
 
-//runServer()
+runServer()
 
-const paths = listStepContent('./1676732276_profile.tar.gz', {skipErrors: true})
-console.log(paths)
+//onst paths = listStepContent('./1676732276_profile.tar.gz', {skipErrors: true})
+//console.log(paths)
