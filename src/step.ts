@@ -1,12 +1,19 @@
 import * as tar from 'tar';
 import * as fs from 'fs';
 
+export interface StepContentFile {
+    name: string,
+    type?: string,
+    content: any
+}
+
 export interface StepContent {
     inputs: string[],
     outputs: string[],
     metadata: {[key: string]: any},
     log?: string,
-    errors?: string
+    errors?: string,
+    files?: {[fileName: string]: StepContentFile}
 }
 
 export interface StepPreview {
@@ -82,6 +89,7 @@ export const showStepContent = (path: string, opt: ShowStepOptions ={}): StepCon
     let metadata: {[key: string]: any} = {}
     let log: string | undefined = undefined
     let errors: string | undefined = undefined
+    let loadedFiles: {[fileName: string]: StepContentFile} = {};
 
     // define the callback for handling the content files
     const onentry = (e: tar.ReadEntry) => {
@@ -107,6 +115,17 @@ export const showStepContent = (path: string, opt: ShowStepOptions ={}): StepCon
         if (e.path.endsWith('STDOUT.log') && !opt.skipLog) {
             log = extractFile(path, e.path, 'utf8') as string
         }
+
+        // check if any extra file was required
+        if (opt.loadFiles && opt.loadFiles.some(f => e.path.endsWith(f))) {
+            const fileName = e.path.split('/').pop() || e.path
+            const type = fileName.split('.').slice(1).join('.')
+            loadedFiles[fileName] = {
+                name: fileName,
+                type: fileName.split('.').slice(1).join('.'),
+                content: extractFile(path, e.path, ['pdf', 'png', 'jpeg', 'tif'].includes(type) ? 'base64' : 'utf8')
+            }
+        }
     }
 
     // open the tar
@@ -122,6 +141,7 @@ export const showStepContent = (path: string, opt: ShowStepOptions ={}): StepCon
         outputs,
         metadata,
         ...(typeof log !== 'undefined' && { log }),
-        ...(typeof errors !== 'undefined' && { errors })
+        ...(typeof errors !== 'undefined' && { errors }),
+        ...(Object.keys(loadedFiles).length > 0 && { files: loadedFiles })
     }
 }
