@@ -31,13 +31,26 @@ export interface ReqStep {
     step: StepContent
 }
 
-export const loadStep = async (req: e.Request<{stepName: string}>, res: e.Response, next: e.NextFunction) => {
+export interface StepParams {
+    stepName: string,
+    file?: string 
+}
+
+export const loadStep = async (req: e.Request<StepParams>, res: e.Response, next: e.NextFunction) => {
     // load the requested step
     const stepName = req.params.stepName.toLowerCase()
     const resultPath = (req as e.Request<{stepName: string}> & ReqResultPath).resultPath
     
+    // check if specific files are requested
+    const files = []
+    if (req.params.file) files.push(req.params.file)
+    if (req.query.file && typeof req.query.file === 'string') files.push(req.query.file)
+    if (req.query.file && Array.isArray(req.query.file)) req.query.file.forEach(f => files.push(f))
+
     // load the step
-    const step = loadStepContent(`${resultPath}/${stepName}`);
+    const step = loadStepContent(`${resultPath}/${stepName}`, {
+        ...(files.length > 0 && { loadFiles: files })
+    });
 
     // add to the request
     if (step) {
