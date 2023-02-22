@@ -76,10 +76,13 @@ const _addAPIEndpoints = (app: e.Express, production=false, defaultResultPath?: 
     app.get('/steps', (req, res) => {
         // make sure either resultPath is set or passed as query param
         const resultPath = (req as e.Request & ReqResultPath).resultPath
-        
-        const stepPreviews = step.listStepFiles(resultPath)
 
-        // send the respinse
+        // get the filter from the files
+        const filter = {...(req.query.toolName && {toolName: req.query.toolName as string})}
+        
+        const stepPreviews = step.listStepFiles(resultPath, filter)
+
+        // send the response
         res.status(200).json({
             count: stepPreviews.length,
             steps: stepPreviews
