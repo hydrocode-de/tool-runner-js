@@ -5,6 +5,7 @@ import * as fs from 'fs';
 
 import { refreshCache, filterToolName, ReqTools, ReqTool } from './tool-middleware';
 import { addResultPath, loadStep, ReqResultPath, ReqStep, StepParams } from './step-middleware';
+import { healthz } from '../docker';
 import * as run from '../run';
 import * as step from '../step';
 
@@ -28,6 +29,12 @@ const _addAPIEndpoints = (app: e.Express, production=false, defaultResultPath?: 
             }
         }
         res.json(response)
+    })
+
+    app.get('/healthz', async (req, res) => {
+        const health = await healthz()
+
+        res.status(200).json(health)
     })
 
     app.get('/tools', (req, res) => {
