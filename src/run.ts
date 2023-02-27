@@ -140,8 +140,10 @@ export const runTool = async (tool: ToolConfig, options: RunOptions= {}, args: {
             file: tarpath,
         }, [ `${basePath}` ])
 
+        // turn tarpath to filename
+        const fileName = tarpath.split('/').pop() as string
         // return the tarpath
-        return new Promise(resolve => resolve(tarpath))
+        return new Promise(resolve => resolve(fileName))
     } else {
         return new Promise(resolve => resolve(stdout.toString()))
     }
