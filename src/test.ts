@@ -38,7 +38,7 @@ const toolConfig: ToolConfig = {
 
 // })
 
-runServer()
+runServer({resultPath: '../tool-runner-frontend/test'})
 
 //onst paths = listStepContent('./1676732276_profile.tar.gz', {skipErrors: true})
 //console.log(paths)
