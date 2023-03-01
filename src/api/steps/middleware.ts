@@ -1,7 +1,7 @@
 import * as e from 'express';
 import * as memoize from 'memoizee';
 
-import { StepContent, showStepContent, ShowStepOptions } from '../step'; 
+import { StepContent, showStepContent, ShowStepOptions } from '../../step'; 
 
 
 // create a cached version

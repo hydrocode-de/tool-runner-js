@@ -1,8 +1,8 @@
 import * as e from 'express'
 import { performance } from 'perf_hooks';
 
-import { ToolConfig } from '../models/ToolConfig'
-import * as run from '../run';
+import { ToolConfig } from '../../models/ToolConfig'
+import * as run from '../../run';
 
 
 // caching
